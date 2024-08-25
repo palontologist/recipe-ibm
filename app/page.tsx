@@ -1,113 +1,143 @@
-import Image from "next/image";
+"use client"
 
-export default function Home() {
+import { useState } from "react"
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Checkbox } from "@/components/ui/checkbox"
+
+export default function Component() {
+  const [ingredients, setIngredients] = useState<string[]>([])
+  const [currentIngredient, setCurrentIngredient] = useState("")
+  const [dietaryRestrictions, setDietaryRestrictions] = useState({
+    vegetarian: false,
+    vegan: false,
+    glutenFree: false,
+    dairyFree: false,
+  })
+  const [generatedRecipe, setGeneratedRecipe] = useState("")
+  const [isGenerating, setIsGenerating] = useState(false)
+
+  const addIngredient = () => {
+    if (currentIngredient && !ingredients.includes(currentIngredient)) {
+      setIngredients([...ingredients, currentIngredient])
+      setCurrentIngredient("")
+    }
+  }
+
+  const removeIngredient = (ingredient: string) => {
+    setIngredients(ingredients.filter((item) => item !== ingredient))
+  }
+
+  const handleDietaryRestrictionChange = (restriction: keyof typeof dietaryRestrictions) => {
+    setDietaryRestrictions((prev) => ({ ...prev, [restriction]: !prev[restriction] }))
+  }
+
+  const generateRecipe = () => {
+    setIsGenerating(true)
+    // Simulating AI generation process
+    setTimeout(() => {
+      const recipe = simulateAIRecipeGeneration(ingredients, dietaryRestrictions)
+      setGeneratedRecipe(recipe)
+      setIsGenerating(false)
+    }, 2000)
+  }
+
+  const simulateAIRecipeGeneration = (ingredients: string[], restrictions: typeof dietaryRestrictions) => {
+    const recipeName = `${ingredients[0].charAt(0).toUpperCase() + ingredients[0].slice(1)} Delight`
+    let recipe = `Recipe: ${recipeName}\n\n`
+    recipe += "Ingredients:\n"
+    ingredients.forEach((ingredient) => {
+      recipe += `- ${ingredient}\n`
+    })
+    recipe += "\nInstructions:\n"
+    recipe += "1. Preheat the oven to 350°F (175°C).\n"
+    recipe += `2. In a large bowl, combine ${ingredients[0]} and ${ingredients[1]}.\n`
+    recipe += `3. Add the remaining ingredients and mix well.\n`
+    recipe += "4. Transfer the mixture to a baking dish.\n"
+    recipe += "5. Bake for 25-30 minutes or until golden brown.\n"
+    recipe += "6. Let it cool for 5 minutes before serving.\n"
+
+    if (restrictions.vegetarian) recipe += "\nNote: This recipe is vegetarian-friendly.\n"
+    if (restrictions.vegan) recipe += "\nNote: This recipe is vegan-friendly.\n"
+    if (restrictions.glutenFree) recipe += "\nNote: This recipe is gluten-free.\n"
+    if (restrictions.dairyFree) recipe += "\nNote: This recipe is dairy-free.\n"
+
+    return recipe
+  }
+
   return (
-    <main className="flex min-h-screen flex-col items-center justify-between p-24">
-      <div className="z-10 w-full max-w-5xl items-center justify-between font-mono text-sm lg:flex">
-        <p className="fixed left-0 top-0 flex w-full justify-center border-b border-gray-300 bg-gradient-to-b from-zinc-200 pb-6 pt-8 backdrop-blur-2xl dark:border-neutral-800 dark:bg-zinc-800/30 dark:from-inherit lg:static lg:w-auto  lg:rounded-xl lg:border lg:bg-gray-200 lg:p-4 lg:dark:bg-zinc-800/30">
-          Get started by editing&nbsp;
-          <code className="font-mono font-bold">app/page.tsx</code>
-        </p>
-        <div className="fixed bottom-0 left-0 flex h-48 w-full items-end justify-center bg-gradient-to-t from-white via-white dark:from-black dark:via-black lg:static lg:size-auto lg:bg-none">
-          <a
-            className="pointer-events-none flex place-items-center gap-2 p-8 lg:pointer-events-auto lg:p-0"
-            href="https://vercel.com?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            By{" "}
-            <Image
-              src="/vercel.svg"
-              alt="Vercel Logo"
-              className="dark:invert"
-              width={100}
-              height={24}
-              priority
-            />
-          </a>
+    <div className="container mx-auto p-4">
+      <h1 className="text-2xl font-bold mb-4">AI Recipe Generator</h1>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div>
+          <Card>
+            <CardHeader>
+              <CardTitle>Ingredients</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="flex space-x-2 mb-2">
+                <Input
+                  value={currentIngredient}
+                  onChange={(e) => setCurrentIngredient(e.target.value)}
+                  placeholder="Enter an ingredient"
+                />
+                <Button onClick={addIngredient}>Add</Button>
+              </div>
+              <div className="flex flex-wrap gap-2 mt-2">
+                {ingredients.map((ingredient, index) => (
+                  <span
+                    key={index}
+                    className="bg-primary text-primary-foreground px-2 py-1 rounded flex items-center"
+                  >
+                    {ingredient}
+                    <button
+                      onClick={() => removeIngredient(ingredient)}
+                      className="ml-2 text-xs bg-red-500 text-white rounded-full w-4 h-4 flex items-center justify-center"
+                    >
+                      ×
+                    </button>
+                  </span>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="mt-4">
+            <CardHeader>
+              <CardTitle>Dietary Restrictions</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-2">
+                {Object.entries(dietaryRestrictions).map(([key, value]) => (
+                  <div key={key} className="flex items-center space-x-2">
+                    <Checkbox
+                      id={key}
+                      checked={value}
+                      onCheckedChange={() => handleDietaryRestrictionChange(key as keyof typeof dietaryRestrictions)}
+                    />
+                    <Label htmlFor={key}>{key.charAt(0).toUpperCase() + key.slice(1)}</Label>
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+
+          <Button className="mt-4" onClick={generateRecipe} disabled={isGenerating || ingredients.length === 0}>
+            {isGenerating ? "Generating..." : "Generate Recipe"}
+          </Button>
         </div>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Generated Recipe</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <pre className="whitespace-pre-wrap">{generatedRecipe}</pre>
+          </CardContent>
+        </Card>
       </div>
-
-      <div className="relative z-[-1] flex place-items-center before:absolute before:h-[300px] before:w-full before:-translate-x-1/2 before:rounded-full before:bg-gradient-radial before:from-white before:to-transparent before:blur-2xl before:content-[''] after:absolute after:-z-20 after:h-[180px] after:w-full after:translate-x-1/3 after:bg-gradient-conic after:from-sky-200 after:via-blue-200 after:blur-2xl after:content-[''] before:dark:bg-gradient-to-br before:dark:from-transparent before:dark:to-blue-700 before:dark:opacity-10 after:dark:from-sky-900 after:dark:via-[#0141ff] after:dark:opacity-40 sm:before:w-[480px] sm:after:w-[240px] before:lg:h-[360px]">
-        <Image
-          className="relative dark:drop-shadow-[0_0_0.3rem_#ffffff70] dark:invert"
-          src="/next.svg"
-          alt="Next.js Logo"
-          width={180}
-          height={37}
-          priority
-        />
-      </div>
-
-      <div className="mb-32 grid text-center lg:mb-0 lg:w-full lg:max-w-5xl lg:grid-cols-4 lg:text-left">
-        <a
-          href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className="group rounded-lg border border-transparent px-5 py-4 transition-colors hover:border-gray-300 hover:bg-gray-100 hover:dark:border-neutral-700 hover:dark:bg-neutral-800/30"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2 className="mb-3 text-2xl font-semibold">
-            Docs{" "}
-            <span className="inline-block transition-transform group-hover:translate-x-1 motion-reduce:transform-none">
-              -&gt;
-            </span>
-          </h2>
-          <p className="m-0 max-w-[30ch] text-sm opacity-50">
-            Find in-depth information about Next.js features and API.
-          </p>
-        </a>
-
-        <a
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          className="group rounded-lg border border-transparent px-5 py-4 transition-colors hover:border-gray-300 hover:bg-gray-100 hover:dark:border-neutral-700 hover:dark:bg-neutral-800/30"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2 className="mb-3 text-2xl font-semibold">
-            Learn{" "}
-            <span className="inline-block transition-transform group-hover:translate-x-1 motion-reduce:transform-none">
-              -&gt;
-            </span>
-          </h2>
-          <p className="m-0 max-w-[30ch] text-sm opacity-50">
-            Learn about Next.js in an interactive course with&nbsp;quizzes!
-          </p>
-        </a>
-
-        <a
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className="group rounded-lg border border-transparent px-5 py-4 transition-colors hover:border-gray-300 hover:bg-gray-100 hover:dark:border-neutral-700 hover:dark:bg-neutral-800/30"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2 className="mb-3 text-2xl font-semibold">
-            Templates{" "}
-            <span className="inline-block transition-transform group-hover:translate-x-1 motion-reduce:transform-none">
-              -&gt;
-            </span>
-          </h2>
-          <p className="m-0 max-w-[30ch] text-sm opacity-50">
-            Explore starter templates for Next.js.
-          </p>
-        </a>
-
-        <a
-          href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className="group rounded-lg border border-transparent px-5 py-4 transition-colors hover:border-gray-300 hover:bg-gray-100 hover:dark:border-neutral-700 hover:dark:bg-neutral-800/30"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2 className="mb-3 text-2xl font-semibold">
-            Deploy{" "}
-            <span className="inline-block transition-transform group-hover:translate-x-1 motion-reduce:transform-none">
-              -&gt;
-            </span>
-          </h2>
-          <p className="m-0 max-w-[30ch] text-balance text-sm opacity-50">
-            Instantly deploy your Next.js site to a shareable URL with Vercel.
-          </p>
-        </a>
-      </div>
-    </main>
-  );
+    </div>
+  )
 }
